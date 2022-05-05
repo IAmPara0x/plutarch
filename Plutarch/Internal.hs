@@ -40,7 +40,6 @@ import qualified Data.Map.Lazy as M
 import qualified Data.Set as S
 import qualified Flat.Run as F
 import GHC.Stack (HasCallStack)
-import Numeric.Natural (Natural)
 import Plutarch.Evaluate (evaluateScript)
 import Plutus.V1.Ledger.Scripts (Script (Script))
 import PlutusCore (Some (Some), ValueOf (ValueOf))

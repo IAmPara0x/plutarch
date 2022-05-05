@@ -8,6 +8,7 @@ import Plutus.V1.Ledger.Scripts (Script (Script))
 import qualified Plutus.V1.Ledger.Scripts as Scripts
 import PlutusCore (FreeVariableError, defaultVersion)
 import qualified PlutusCore as PLC
+import qualified PlutusCore.DeBruijn as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (
   ExBudget (ExBudget),
   ExRestrictingBudget (ExRestrictingBudget),
@@ -20,6 +21,7 @@ import UntypedPlutusCore (
   termMapNames,
   unNameDeBruijn,
  )
+import qualified UntypedPlutusCore as UPLC
 import UntypedPlutusCore.DeBruijn (deBruijnTerm)
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
@@ -30,6 +32,14 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
  This is same as `Plutus.V1.Ledger.Scripts.evaluateScript`, but returns the
  result as well.
 -}
+
+mkTermToEvaluate :: Script -> Either PLC.FreeVariableError (UPLC.Program UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+mkTermToEvaluate (Script (UPLC.Program a v t)) =
+    -- TODO: evaluate the nameless debruijn program directly
+    let named = UPLC.termMapNames PLC.fakeNameDeBruijn t
+        namedProgram = UPLC.Program a v named
+    in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
+
 evaluateScript :: Script -> Either Scripts.ScriptError (ExBudget, [Text], Script)
 evaluateScript = evaluateBudgetedScript $ ExBudget (ExMemory.ExCPU maxInt) (ExMemory.ExMemory maxInt)
   where
@@ -37,9 +47,9 @@ evaluateScript = evaluateBudgetedScript $ ExBudget (ExMemory.ExCPU maxInt) (ExMe
 
 evaluateBudgetedScript :: ExBudget -> Script -> Either Scripts.ScriptError (ExBudget, [Text], Script)
 evaluateBudgetedScript totalBudget s = do
-  p <- case Scripts.mkTermToEvaluate s of
+  p <- case mkTermToEvaluate s of
     Right p -> pure p
-    Left e -> Left . Scripts.MalformedScript $ show e
+    Left e -> Left . Scripts.EvaluationException (show e) $ show e
   let (logOut, usedBudget, result) = evaluateCekBudgetedTrace totalBudget p
   named <- case result of
     Right term -> pure term

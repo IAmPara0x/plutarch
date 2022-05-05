@@ -22,7 +22,7 @@ import UntypedPlutusCore (
   unNameDeBruijn,
  )
 import qualified UntypedPlutusCore as UPLC
-import UntypedPlutusCore.DeBruijn (deBruijnTerm)
+import UntypedPlutusCore.DeBruijn (deBruijnTerm, unDeBruijnTerm)
 import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 -- Stolen from pluto, thanks Morgan
@@ -33,12 +33,15 @@ import qualified UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
  result as well.
 -}
 
+-----------------------------------------------------------------
+
 mkTermToEvaluate :: Script -> Either PLC.FreeVariableError (UPLC.Program UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate (Script (UPLC.Program a v t)) =
     -- TODO: evaluate the nameless debruijn program directly
     let named = UPLC.termMapNames PLC.fakeNameDeBruijn t
-        namedProgram = UPLC.Program a v named
-    in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram
+    in PLC.runQuote $ runExceptT @PLC.FreeVariableError $ (UPLC.Program a v <$> unDeBruijnTerm named)
+
+-----------------------------------------------------------------
 
 evaluateScript :: Script -> Either Scripts.ScriptError (ExBudget, [Text], Script)
 evaluateScript = evaluateBudgetedScript $ ExBudget (ExMemory.ExCPU maxInt) (ExMemory.ExMemory maxInt)

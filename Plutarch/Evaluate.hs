@@ -79,7 +79,7 @@ evaluateCekBudgetedTrace ::
   ( [Text]
   , ExBudget
   , Either
-      (UPLC.CekEvaluationException PLC.DefaultUni PLC.DefaultFun)
+      (UPLC.CekEvaluationException PLC.Name PLC.DefaultUni PLC.DefaultFun)
       (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
   )
 evaluateCekBudgetedTrace budget (Program _ _ t) =

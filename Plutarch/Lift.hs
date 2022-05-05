@@ -27,7 +27,7 @@ import Plutarch.Evaluate (evaluateScript)
 import Plutarch.Internal (ClosedTerm, PType, Term, compile, punsafeConstantInternal)
 import qualified Plutus.V1.Ledger.Scripts as Scripts
 import qualified PlutusCore as PLC
-import PlutusCore.Builtin.KnownType (readKnownConstant)
+import PlutusCore.Builtin (readKnownConstant)
 
 import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause, MachineError)
 import qualified UntypedPlutusCore as UPLC

@@ -138,6 +138,14 @@ module Plutarch.Prelude (
   TermCont (TermCont, runTermCont),
   unTermCont,
   tcont,
+
+  -- * Plutarch Extra Continuation monad functions
+   pletC,
+   pmatchC,
+   pletFieldsC,
+   ptraceC,
+   pguardC,
+   pguardC',
 ) where
 
 import Prelude ()
@@ -150,6 +158,7 @@ import Plutarch.ByteString
 import Plutarch.Crypto
 import Plutarch.DataRepr
 import Plutarch.Either
+import Plutarch.Extra
 import Plutarch.Integer
 import Plutarch.Lift
 import Plutarch.List

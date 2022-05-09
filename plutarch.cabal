@@ -106,6 +106,7 @@ library
     Plutarch.Either
     Plutarch.Evaluate
     Plutarch.Extra
+    Plutarch.FFI
     Plutarch.Integer
     Plutarch.Internal
     Plutarch.Internal.Other

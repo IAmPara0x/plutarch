@@ -1,3 +1,4 @@
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -41,6 +42,7 @@ import Plutarch.Lift (
   pconstant,
  )
 import Plutarch.Unsafe (punsafeBuiltin)
+import Plutarch.Internal.Generic (PCode, PGeneric, gpfrom)
 import qualified PlutusCore as PLC
 
 -- | Plutus 'BuiltinBool'

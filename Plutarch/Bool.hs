@@ -34,6 +34,9 @@ import Plutarch.Internal.Other (
   (#),
   type (:-->),
  )
+
+import Generics.SOP (All2)
+
 import Plutarch.Lift (
   DerivePConstantDirect (DerivePConstantDirect),
   PConstant,

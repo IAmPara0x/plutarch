@@ -35,6 +35,7 @@ import Plutarch.Internal.Other (
   type (:-->),
  )
 
+import Data.List.NonEmpty (nonEmpty)
 import Generics.SOP (
   All,
   All2,

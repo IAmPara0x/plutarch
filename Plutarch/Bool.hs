@@ -59,6 +59,12 @@ instance PlutusType PBool where
 
 class PEq t where
   (#==) :: Term s t -> Term s t -> Term s PBool
+  default (#==) ::
+    (PGeneric s t, PlutusType t, All2 PEq (PCode s t)) =>
+    Term s t ->
+    Term s t ->
+    Term s PBool
+  a #== b = gpeq # a # b
 
 infix 4 #==
 

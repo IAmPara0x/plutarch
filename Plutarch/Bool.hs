@@ -56,7 +56,7 @@ import Plutarch.Lift (
   pconstant,
  )
 import Plutarch.Unsafe (punsafeBuiltin)
-import Plutarch.Internal (plet, punsafeAsClosedTerm)
+import Plutarch.Internal (punsafeAsClosedTerm)
 import Plutarch.Internal.Generic (PCode, PGeneric, gpfrom)
 import qualified PlutusCore as PLC
 

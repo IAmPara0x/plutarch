@@ -122,6 +122,7 @@ library
     Plutarch.Rational
     Plutarch.Rec
     Plutarch.Rec.TH
+    Plutarch.Show
     Plutarch.String
     Plutarch.TermCont
     Plutarch.Trace

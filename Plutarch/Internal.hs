@@ -6,6 +6,7 @@ module Plutarch.Internal (
   PDelayed,
   -- | $term
   Term (Term, asRawTerm),
+  asClosedRawTerm,
   mapTerm,
   plam',
   plet,
@@ -19,6 +20,7 @@ module Plutarch.Internal (
   punsafeConstant,
   punsafeConstantInternal,
   compile,
+  compile',
   ClosedTerm,
   Dig,
   hashTerm,
@@ -77,6 +79,7 @@ data RawTerm
   | RBuiltin PLC.DefaultFun
   | RError
   | RHoisted HoistedTerm
+  | RCompiled (UPLC.Term DeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
   deriving stock (Show)
 
 hashRawTerm' :: HashAlgorithm alg => RawTerm -> Context alg -> Context alg
@@ -91,6 +94,7 @@ hashRawTerm' (RConstant x) = flip hashUpdate ("5" :: BS.ByteString) . flip hashU
 hashRawTerm' (RBuiltin x) = flip hashUpdate ("6" :: BS.ByteString) . flip hashUpdate (F.flat x)
 hashRawTerm' RError = flip hashUpdate ("7" :: BS.ByteString)
 hashRawTerm' (RHoisted (HoistedTerm hash _)) = flip hashUpdate ("8" :: BS.ByteString) . flip hashUpdate hash
+hashRawTerm' (RCompiled code) = flip hashUpdate ("9" :: BS.ByteString) . flip hashUpdate (F.flat code)
 
 hashRawTerm :: RawTerm -> Dig
 hashRawTerm t = hashFinalize . hashRawTerm' t $ hashInit
@@ -366,6 +370,7 @@ rawTermToUPLC _ _ (RConstant c) = UPLC.Constant () c
 rawTermToUPLC _ _ RError = UPLC.Error ()
 -- rawTermToUPLC m l (RHoisted hoisted) = UPLC.Var () . DeBruijn . Index $ l - m hoisted
 rawTermToUPLC m l (RHoisted hoisted) = m hoisted l -- UPLC.Var () . DeBruijn . Index $ l - m hoisted
+rawTermToUPLC _ _ (RCompiled code) = code
 
 -- The logic is mostly for hoisting
 compile' :: TermResult -> UPLC.Term DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
@@ -421,3 +426,7 @@ hashTerm :: ClosedTerm a -> Dig
 hashTerm t =
   let t' = asRawTerm t 0
    in hashRawTerm . getTerm $ t'
+
+
+punsafeAsClosedTerm :: forall s a. Term s a -> ClosedTerm a
+punsafeAsClosedTerm (Term t) = (Term t)

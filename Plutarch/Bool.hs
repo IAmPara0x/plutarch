@@ -35,7 +35,17 @@ import Plutarch.Internal.Other (
   type (:-->),
  )
 
-import Generics.SOP (All2)
+import Generics.SOP (
+  All,
+  All2,
+  HCollapse (hcollapse),
+  K (K),
+  NP,
+  Proxy (Proxy),
+  SOP (SOP),
+  ccompare_NS,
+  hcliftA2,
+ )
 
 import Plutarch.Lift (
   DerivePConstantDirect (DerivePConstantDirect),
@@ -130,3 +140,32 @@ por = phoistAcyclic $ plam $ \x y -> pif' # x # (phoistAcyclic $ pdelay $ pcon P
 -- | Hoisted, Plutarch level, strictly evaluated boolean or function.
 por' :: Term s (PBool :--> PBool :--> PBool)
 por' = phoistAcyclic $ plam $ \x y -> pif' # x # (pcon PTrue) # y
+
+gpeq ::
+  forall t s.
+  ( PGeneric s t
+  , PlutusType t
+  , All2 PEq (PCode s t)
+  ) =>
+  Term s (t :--> t :--> PBool)
+gpeq =
+  phoistAcyclic $
+    punsafeAsClosedTerm @s $
+      plam $ \x y ->
+        pmatch x $ \x' ->
+          pmatch y $ \y' ->
+            gpeq' (gpfrom x') (gpfrom y')
+
+gpeq' :: All2 PEq xss => SOP (Term s) xss -> SOP (Term s) xss -> Term s PBool
+gpeq' (SOP c1) (SOP c2) =
+  ccompare_NS (Proxy @(All PEq)) (pcon PFalse) eqProd (pcon PFalse) c1 c2
+
+eqProd :: All PEq xs => NP (Term s) xs -> NP (Term s) xs -> Term s PBool
+eqProd p1 p2 =
+  pands $ hcollapse $ hcliftA2 (Proxy :: Proxy PEq) eqTerm p1 p2
+  where
+    eqTerm :: forall s a. PEq a => Term s a -> Term s a -> K (Term s PBool) a
+    eqTerm a b =
+      K $ a #== b
+
+

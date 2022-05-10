@@ -32,6 +32,15 @@ import PlutusCore.Builtin (readKnownConstant)
 import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause, MachineError)
 import qualified UntypedPlutusCore as UPLC
 
+
+{- |
+Laws:
+ - It must be that @PConstantRepr (PLifted p)@ when encoded as a constant
+   in UPLC (via the 'UntypedPlutusCore.Constant' constructor) is a valid @p@.
+-}
+class (PConstantDecl (PLifted p), PConstanted (PLifted p) ~ p) => PUnsafeLiftDecl (p :: PType) where
+  type PLifted p = (r :: Type) | r -> p
+
 class (PConstant (PLifted p), PConstanted (PLifted p) ~ p) => PUnsafeLiftDecl (p :: PType) where
   type PLifted p :: Type
 

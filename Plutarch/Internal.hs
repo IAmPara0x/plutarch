@@ -19,6 +19,7 @@ module Plutarch.Internal (
   punsafeBuiltin,
   punsafeConstant,
   punsafeConstantInternal,
+  punsafeAsClosedTerm,
   compile,
   compile',
   ClosedTerm,

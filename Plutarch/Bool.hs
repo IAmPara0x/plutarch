@@ -55,6 +55,7 @@ import Plutarch.Lift (
   pconstant,
  )
 import Plutarch.Unsafe (punsafeBuiltin)
+import Plutarch.Internal (plet, punsafeAsClosedTerm)
 import Plutarch.Internal.Generic (PCode, PGeneric, gpfrom)
 import qualified PlutusCore as PLC
 
@@ -168,4 +169,8 @@ eqProd p1 p2 =
     eqTerm a b =
       K $ a #== b
 
-
+pands :: [Term s PBool] -> Term s PBool
+pands ts' =
+  case nonEmpty ts' of
+    Nothing -> pcon PTrue
+    Just ts -> foldl1 (#&&) ts

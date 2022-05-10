@@ -38,7 +38,7 @@ import Plutarch.Evaluate (EvalError, evalScript)
 import Plutarch.Internal (ClosedTerm, PType, Term, compile, punsafeConstantInternal)
 import qualified Plutus.V1.Ledger.Scripts as Scripts
 import qualified PlutusCore as PLC
-import PlutusCore.Builtin (ReadKnownError, readKnownConstant)
+import PlutusCore.Builtin (KnownTypeError, readKnownConstant)
 import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause (ErrorWithCause), MachineError, _UnliftingErrorE)
 import PlutusTx (BuiltinData, Data, builtinDataToData, dataToBuiltinData)
 import PlutusTx.Builtins.Class (FromBuiltin, ToBuiltin, fromBuiltin, toBuiltin)
@@ -97,7 +97,7 @@ pconstant x = punsafeConstantInternal $ PLC.someValue @(PConstantRepr (PLifted p
 -- | Error during script evaluation.
 data LiftError
   = LiftError_EvalError EvalError
-  | LiftError_ReadKnownError (ErrorWithCause ReadKnownError (MachineError PLC.DefaultFun))
+  | LiftError_ReadKnownError (ErrorWithCause KnownTypeError (MachineError PLC.DefaultFun))
   | LiftError_FromRepr
   deriving stock (Eq)
 

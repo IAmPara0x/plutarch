@@ -68,13 +68,14 @@ import Plutarch (
   phoistAcyclic,
   plam,
   plet,
+  pmatch,
   pmatch',
   pto,
   (#),
   (#$),
   type (:-->),
  )
-import Plutarch.Bool (pif, (#==))
+import Plutarch.Bool (PEq, POrd, pif, (#<), (#<=), (#==))
 import Plutarch.Builtin (
   PAsData,
   PBuiltinList,
@@ -96,7 +97,7 @@ import Plutarch.Internal (S (SI))
 import Plutarch.Internal.TypeFamily (ToPType2)
 import Plutarch.Lift (PConstant, PConstantRepr, PConstanted, PLift, pconstant, pconstantFromRepr, pconstantToRepr)
 import Plutarch.List (PListLike (pnil), pcons, pdrop, phead, ptail, ptryIndex)
-import Plutarch.TermCont (TermCont, hashOpenTerm, runTermCont)
+import Plutarch.TermCont (TermCont, hashOpenTerm, runTermCont, tcont, unTermCont)
 import Plutarch.Unsafe (punsafeCoerce)
 import qualified Plutus.V1.Ledger.Api as Ledger
 
@@ -111,12 +112,17 @@ data PDataRecord (as :: [PLabeledType]) (s :: S) where
     PDataRecord ((name ':= x) ': xs) s
   PDNil :: PDataRecord '[] s
 
+instance {-# OVERLAPPABLE #-} PlutusType (PDataRecord l) where
+  type PInner (PDataRecord l) _ = PBuiltinList PData
+  pcon' :: PDataRecord l s -> Term s (PBuiltinList PData)
+  pcon' (PDCons x xs) = pcon' $ PDCons x xs
+  pcon' PDNil = pcon' PDNil
+  pmatch' :: Term s (PBuiltinList PData) -> (PDataRecord l s -> Term s b) -> Term s b
+  pmatch' _ _ = error "PDataRecord l: pmatch' unsupported ('l' should be more specific)"
+
 instance PlutusType (PDataRecord ((name ':= x) ': xs)) where
   type PInner (PDataRecord ((name ':= x) ': xs)) _ = PBuiltinList PData
-  pcon' (PDCons x xs) = pto result
-    where
-      result :: Term _ (PDataRecord ((name ':= x) ': xs))
-      result = pdcons # x # xs
+  pcon' (PDCons x xs) = pcons # pforgetData x # pto xs
   pmatch' l' f = plet l' $ \l ->
     let x :: Term _ (PAsData x)
         x = punsafeCoerce $ phead # l
@@ -128,6 +134,46 @@ instance PlutusType (PDataRecord '[]) where
   type PInner (PDataRecord '[]) _ = PBuiltinList PData
   pcon' PDNil = pnil
   pmatch' _ f = f PDNil
+
+instance PEq (PDataRecord xs) where
+  x #== y = (pto x :: Term _ (PBuiltinList PData)) #== (pto y :: Term _ (PBuiltinList PData))
+
+-- Lexicographic ordering based 'Ord' instances for 'PDataRecord'.
+
+instance POrd (PDataRecord '[]) where
+  _ #<= _ = pconstant True
+  _ #< _ = pconstant False
+
+instance (POrd x, PIsData x) => POrd (PDataRecord '[label ':= x]) where
+  l1 #< l2 = unTermCont $ do
+    PDCons x _ <- tcont $ pmatch l1
+    PDCons y _ <- tcont $ pmatch l2
+
+    pure $ pfromData x #< pfromData y
+  l1 #<= l2 = unTermCont $ do
+    PDCons x _ <- tcont $ pmatch l1
+    PDCons y _ <- tcont $ pmatch l2
+
+    pure $ pfromData x #<= pfromData y
+
+instance (POrd x, PIsData x, POrd (PDataRecord (x' ': xs))) => POrd (PDataRecord ((label ':= x) ': x' ': xs)) where
+  l1 #< l2 = unTermCont $ do
+    PDCons x xs <- tcont $ pmatch l1
+    PDCons y ys <- tcont $ pmatch l2
+
+    a <- tcont . plet $ pfromData x
+    b <- tcont . plet $ pfromData y
+
+    pure $ pif (a #< b) (pconstant True) $ pif (a #== b) (xs #< ys) $ pconstant False
+  l1 #<= l2 = unTermCont $ do
+    PDCons x xs <- tcont $ pmatch l1
+    PDCons y ys <- tcont $ pmatch l2
+
+    a <- tcont . plet $ pfromData x
+    b <- tcont . plet $ pfromData y
+
+    pure $ pif (a #< b) (pconstant True) $ pif (a #== b) (xs #<= ys) $ pconstant False
+
 
 {- | Cons a field to a data record.
 
@@ -185,6 +231,9 @@ data PDataSum (defs :: [[PLabeledType]]) (s :: S)
 instance PIsData (PDataSum defs) where
   pdata = punsafeCoerce
   pfromData = punsafeCoerce
+
+instance PEq (PDataSum defs) where
+  x #== y = pdata x #== pdata y
 
 -- | If there is only a single variant, then we can safely extract it.
 punDataSum :: Term s (PDataSum '[def] :--> PDataRecord def)
@@ -363,6 +412,9 @@ instance PIsDataRepr a => PlutusType (PIsDataReprInstances a) where
   type PInner (PIsDataReprInstances a) _ = PDataSum (PIsDataReprRepr a)
   pcon' (PIsDataReprInstances x) = pconRepr x
   pmatch' x f = pmatchRepr x (f . PIsDataReprInstances)
+
+instance PIsDataRepr a => PEq (PIsDataReprInstances a) where
+  x #== y = pdata x #== pdata y
 
 newtype DerivePConstantViaData (h :: Type) (p :: PType) = DerivePConstantViaData h
 

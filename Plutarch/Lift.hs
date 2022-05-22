@@ -38,12 +38,12 @@ import Plutarch.Evaluate (EvalError, evalScript)
 import Plutarch.Internal (ClosedTerm, PType, Term, compile, punsafeConstantInternal)
 import qualified Plutus.V1.Ledger.Scripts as Scripts
 import qualified PlutusCore as PLC
-import PlutusCore.Builtin (ReadKnownError, readKnownConstant)
 import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause (ErrorWithCause), MachineError, _UnliftingErrorE)
 import PlutusTx (BuiltinData, Data, builtinDataToData, dataToBuiltinData)
 import PlutusTx.Builtins.Class (FromBuiltin, ToBuiltin, fromBuiltin, toBuiltin)
 import qualified UntypedPlutusCore as UPLC
 
+import Plutarch.Patch (ReadKnownError, readKnownConstant)
 {- |
 Laws:
  - It must be that @PConstantRepr (PLifted p)@ when encoded as a constant

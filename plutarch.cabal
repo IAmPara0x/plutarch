@@ -133,6 +133,7 @@ library
     Plutarch.TryFrom
     Plutarch.Unit
     Plutarch.Unsafe
+    Plutarch.Patch
 
   build-depends:
     , base

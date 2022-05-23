@@ -9,6 +9,7 @@ module Plutarch.TryFrom (
   pdowncastF,
   POp (..),
   POpArrow (..),
+  Flip(..),
 ) where
 
 import Data.Coerce (Coercible)
@@ -97,3 +98,8 @@ pupcastF _ = punsafeCoerce
 
 pdowncastF :: forall a b (p :: PType -> PType) s. (PSubtype a b, PContravariant p) => Proxy p -> Term s (p a) -> Term s (p b)
 pdowncastF _ = punsafeCoerce
+
+newtype Flip f a b = Flip (f b a)
+
+instance Reducible (f x y) => Reducible (Flip f y x) where
+  type Reduce (Flip f y x) = Reduce (f x y)

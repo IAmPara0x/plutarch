@@ -29,7 +29,6 @@ module Plutarch.Builtin (
   ppairDataBuiltin,
   pchooseListBuiltin,
   type PBuiltinMap,
-  Flip(..)
 ) where
 
 import Data.Coerce (Coercible, coerce)
@@ -97,11 +96,10 @@ import qualified PlutusTx
 
 import Plutarch.TermCont (TermCont (runTermCont), tcont, unTermCont)
 
-import Plutarch.Reducible (Reducible (Reduce))
 
 import Data.Functor.Const (Const)
 
-import Plutarch.TryFrom (PSubtype, PTryFrom, PTryFromExcess, ptryFrom, ptryFrom', pupcast)
+import Plutarch.TryFrom (PSubtype, PTryFrom, PTryFromExcess, Flip, ptryFrom, ptryFrom', pupcast)
 
 -- | Plutus 'BuiltinPair'
 data PBuiltinPair (a :: PType) (b :: PType) (s :: S)
@@ -422,11 +420,6 @@ Example:
 -}
 pconstantData :: forall p h s. (ToData h, PLifted p ~ h, PConstanted h ~ p) => h -> Term s (PAsData p)
 pconstantData x = punsafeCoerce $ pconstant $ PlutusTx.toData x
-
-newtype Flip f a b = Flip (f b a)
-
-instance Reducible (f x y) => Reducible (Flip f y x) where
-  type Reduce (Flip f y x) = Reduce (f x y)
 
 instance PTryFrom PData (PAsData PInteger) where
   type PTryFromExcess PData (PAsData PInteger) = Flip Term PInteger

@@ -29,6 +29,7 @@ module Plutarch.Builtin (
   ppairDataBuiltin,
   pchooseListBuiltin,
   type PBuiltinMap,
+  Flip(..)
 ) where
 
 import Data.Coerce (Coercible, coerce)

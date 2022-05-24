@@ -71,6 +71,8 @@ common deps
     , base
     , plutarch
     , generics-sop
+    , plutus-ledger-api
+    , plutus-tx
 
 library plutarch-preludes
   import:          c, deps

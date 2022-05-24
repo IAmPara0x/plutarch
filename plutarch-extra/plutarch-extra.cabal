@@ -70,6 +70,7 @@ common deps
   build-depends:
     , base
     , plutarch
+    , generics-sop
 
 library plutarch-preludes
   import:          c, deps
@@ -83,5 +84,4 @@ library
     Plutarch.Extra.Api
     Plutarch.Extra.List
     Plutarch.Extra.TermCont
-
--- other-modules:
+    Plutarch.Extra.These
